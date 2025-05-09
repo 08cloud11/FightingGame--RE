@@ -10,10 +10,21 @@ AFightingGameMode::AFightingGameMode()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	//プレイヤーキャラを指定
-	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/Main/0231honma/BP/BP_Player1"));
-	if (PlayerPawnBPClass.Class != NULL)
-	{
-		DefaultPawnClass = PlayerPawnBPClass.Class;
-	}
+	////プレイヤーキャラを指定
+	//static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/Main/0231honma/BP/BP_Player1"));
+	//if (PlayerPawnBPClass.Class != NULL)
+	//{
+	//	DefaultPawnClass = PlayerPawnBPClass.Class;
+	//}
+}
+
+void AFightingGameMode::BeginPlay()
+{
+    Super::BeginPlay();
+}
+
+// 接続されているコントローラを出力する
+void AFightingGameMode::GetAllConnectionDevice(TArray<FInputDeviceId>& OutInputDevices)
+{
+    //IPlatformInputDeviceMapper::Get().GetAllConnectedInputDevices(OutInputDevices);
 }
