@@ -23,7 +23,7 @@ void ATestBullet::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	Move();
+	//Move();
 }
 
 void ATestBullet::Move()

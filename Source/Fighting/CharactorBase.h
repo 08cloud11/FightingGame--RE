@@ -9,8 +9,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "TestBullet.h"
-#include "AttackComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "InputActionValue.h"
 #include "CharactorBase.generated.h"
 
 class USpringArmComponent;
@@ -34,6 +34,7 @@ enum class CharaType :uint8
 {
 	charaA UMETA(DisplayName = "A"),
 	charaB UMETA(DisplayName = "B"),
+	None UMETA(DisplayName = "None"),
 };
 
 UENUM(BlueprintType)
@@ -45,6 +46,7 @@ enum class AttackType : uint8
 	kick_weak UMETA(DisplayName = "Kick_Weak"),
 	kick_medium UMETA(DisplayName = "Kick_Medium"),
 	kick_strong UMETA(DisplayName = "Kick_Strong"),
+	hadouken UMETA(DisplayName = "Hadouken"),
 	None UMETA(DisplayName = "None"),
 };
 
@@ -93,10 +95,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 	AttackType Get_atktype() const { return _atktype; }
 
+
 	int Get_moveDir() const { return int(_moveDir); }
 
 	UFUNCTION(BlueprintCallable)
 	int Get_hp() const { return _hp; }
+
+	UFUNCTION(BlueprintCallable)
+	int Get_maxhp() const { return _max_hp; }
+
+	int Get_attackpower() const { return _attackpower; }
 
 	UFUNCTION(BlueprintCallable)
 	bool Get_bmove() const { return _bmove; }
@@ -105,7 +113,11 @@ public:
 	bool Get_bjump() const { return _bjump; }
 
 	UFUNCTION(BlueprintCallable)
-	bool Get_bpunch() const { return _bpunch; }
+	bool Get_battack() const { return _battack; }
+
+	UFUNCTION(BlueprintCallable)
+	bool Get_bdamaged() const { return _bdamaged; }
+
 
 	void Set_atktype(AttackType value) { _atktype = value; }
 
@@ -116,9 +128,14 @@ protected:
 	// 戻り値：void
 	// 処理内容：移動処理
 	virtual void Move() {}
-	virtual void Move(float) {};
+	virtual void PadMove(const FInputActionValue&) {};
 
 	virtual void Jump(float DeltaTime){}
+
+	// 引　数：なし
+	// 戻り値：void
+	// 処理内容：ダメージ時の処理
+	void Damaged();
 
 	// 引　数：なし
 	// 戻り値：void
@@ -147,17 +164,35 @@ protected:
 	JumpType _jumptype;
 
 	AttackType _atktype;
+	AttackType _nextatkstate;
 
 	double _jumpTimer;
 	double _punchTimer;
-
+	
 	int _hp = 3000;
 	const int _max_hp = 3000;
+
+	int _comandvals;
+
+	int _attackedflame;
+	int _damagedflame;
 
 	UPROPERTY(EditAnywhere, Category = "Status")
 	int _attackpower = 500;
 
 	bool _bmove = false;		//移動できるか
 	bool _bjump = false;		//ジャンプできるか
-	bool _bpunch = false;		//パンチできるか
+	bool _battack = false;		//パンチできるか
+	bool _bdamaged = false;		//ダメージリアクション中
+	bool _bdead = false;		//敗北
+
+private:
+	UPROPERTY(EditAnywhere, Category = "MPC")
+	UMaterialParameterCollection* _mpc;
+
+	UPROPERTY()
+	UMaterialParameterCollectionInstance* _mpcinstance;
+
+	UPROPERTY()
+	TArray<UMaterialInstanceDynamic*> _mats;
 };

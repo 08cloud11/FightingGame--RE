@@ -1,29 +1,62 @@
-
+//--------------------------------------------------------------------
+// ファイル名 ：PlayerCharacter.cpp
+// 概要       ：プレイヤーの基盤のクラス
+// 作成者     ：0231本間
+// 更新内容   ：4/15　作成
+//--------------------------------------------------------------------
 
 #include "PlayerCharacter.h"
 #include "GameFramework/Controller.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Kismet/GameplayStatics.h"
+#include "Player2_Demo.h"
 
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
 	_charatype = CharaType::charaA;
+	//if (Controller == nullptr) {
 
-	_controller = Cast<APlayerController>(Controller);
+	//	TArray<AActor*> charas;
 
-	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(_controller->GetLocalPlayer()))
-	{
-		Subsystem->AddMappingContext(_defaultMappingContext, 0);
-	}
+	//	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACharactorBase::StaticClass(), charas);
+
+	//	if(charas.Num() == 1) _controller = Cast<APlayerController>(GetWorld()->GetFirstPlayerController());
+	//	else
+	//	{
+	//		//GetWorld()->GetPlayerControllerIterator()->
+	//	}
+	//}
+	//else {
+	//	_controller = Cast<APlayerController>(Controller);
+	//}
+	
+
+	/*{
+		FTransform spawntr;
+		FVector pos = FVector(0.0, 300.0, 90.0);
+		spawntr.SetLocation(pos);
+
+		FName path = TEXT("/Game/Main/0231honma/BP/BP_Sandbag");
+		TSubclassOf<class AActor> Player2 = TSoftClassPtr<AActor>(FSoftObjectPath(path)).LoadSynchronous();
+
+		APlayer2_Demo* spawnplayer = Cast<APlayer2_Demo>(GetWorld()->SpawnActor<AActor>(Player2, spawntr));
+
+		APlayerController* controller = UGameplayStatics::CreatePlayer(GetWorld());
+		controller->Possess(spawnplayer);
+
+		spawnplayer->SetInput(controller);
+	}*/
 }
 
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	//上下左右の移動のみのため、奥行きの固定
 	if (GetActorLocation().X != 0.0) {
 
 		FVector pos = GetActorLocation();
@@ -34,13 +67,42 @@ void APlayerCharacter::Tick(float DeltaTime)
 
 	Jump(DeltaTime);
 
-	if (_bpunch)
+	//攻撃ボタンが押されている
+	if (_nextatkstate != AttackType::None)
+	{
+		_attackedflame++;
+
+		if (_attackedflame > 40)
+		{
+			_battack = true;
+			_punchTimer = 0.0;
+
+			_atktype = _nextatkstate;
+			_nextatkstate = AttackType::None;
+
+			_attackedflame = 0;
+			_comandvals = 0;
+		}
+		//コマンド技(波動拳)
+		else if (_comandvals == 3)
+		{
+			_battack = true;
+			_punchTimer = 0.0;
+			_atktype = AttackType::hadouken;
+			_nextatkstate = AttackType::None;
+
+			_attackedflame = 0;
+			_comandvals = 0;
+		}
+	}	
+
+	if (_battack)
 	{
 		_punchTimer += DeltaTime;
 
 		if (_punchTimer > 0.8)
 		{
-			_bpunch = false;
+			_battack = false;
 		}
 	}
 }
@@ -57,10 +119,31 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		// 移動
 		EnhancedInputComponent->BindAction(_InputActions["Move"], ETriggerEvent::Triggered, this, &APlayerCharacter::InputMove);
 
+		// 移動（ゲームパッド）
+		EnhancedInputComponent->BindAction(_InputActions["PadMove"], ETriggerEvent::Triggered, this, &APlayerCharacter::PadMove);
+
 		// 攻撃
 		EnhancedInputComponent->BindAction(_InputActions["Attack"], ETriggerEvent::Started, this, &APlayerCharacter::AttackAction);
+
+		// ダメージ
+		EnhancedInputComponent->BindAction(_InputActions["Damage"], ETriggerEvent::Started, this, &APlayerCharacter::Damage);
 	}
 
+}
+
+void APlayerCharacter::SetUpController(APlayerController* val)
+{
+	_controller = val;
+
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(_controller->GetLocalPlayer()))
+	{
+		Subsystem->AddMappingContext(_defaultMappingContext, 0);
+	}
+
+	if (_controller)
+	{
+		_controller->bShowMouseCursor = true; // カーソルを表示
+	}
 }
 
 void APlayerCharacter::Move()
@@ -85,24 +168,24 @@ void APlayerCharacter::Move()
 	_bmove = false;
 }
 
-void APlayerCharacter::Move(float axisvalue)
+void APlayerCharacter::PadMove(const FInputActionValue& axisvalue)
 {
-	if (!_bmove) return;
-
 	FVector pos = GetActorLocation();
 
-	if (axisvalue < 0.0)
+	FVector2D value = axisvalue.Get<FVector2D>();
+
+	if (value.X < 0.0 && value.X < -0.5)
 	{
-		_moveDir = MoveDirection::Move_Left;
-		//SetActorLocation(FVector(pos.X, pos.Y - 5.0, pos.Z));
+		_moveDir = Move_Left;
+		SetActorLocation(FVector(pos.X, pos.Y - 5.0, pos.Z));
 	}
-	else if (axisvalue > 0.0)
+	else if (value.X > 0.0 && value.X > 0.5)
 	{
-		_moveDir = MoveDirection::Move_Right;
-		//SetActorLocation(FVector(pos.X, pos.Y + 5.0, pos.Z));
+		_moveDir = Move_Right;
+		SetActorLocation(FVector(pos.X, pos.Y + 5.0, pos.Z));
 	}
 
-	_bmove = false;
+	_bmove = true;
 }
 
 void APlayerCharacter::Jump(float DeltaTime)
@@ -169,34 +252,61 @@ void APlayerCharacter::Jump(float DeltaTime)
 
 void APlayerCharacter::AttackAction()
 {
-	if (_controller->IsInputKeyDown(FKey(EKeys::One))) {
-		_atktype = AttackType::punch_weak;
-	}
-	else if (_controller->IsInputKeyDown(FKey(EKeys::Two))) {
-		_atktype = AttackType::punch_strong;
-	}
-	else if (_controller->IsInputKeyDown(FKey(EKeys::Three))) {
-		_atktype = AttackType::kick_weak;
-	}
-	else if (_controller->IsInputKeyDown(FKey(EKeys::Four))) {
-		_atktype = AttackType::kick_strong;
-	}
+	//弱パンチ
+	if (_controller->IsInputKeyDown(FKey(EKeys::One))
+		|| _controller->IsInputKeyDown(FKey(EKeys::Gamepad_FaceButton_Bottom))) {
+		_nextatkstate = AttackType::punch_weak;
 
-	_bpunch = true;
-	_punchTimer = 0.0;
+		if (_comandvals == 0) _comandvals++;
+	}
+	//強パンチ
+	else if (_controller->IsInputKeyDown(FKey(EKeys::Two))
+		|| _controller->IsInputKeyDown(FKey(EKeys::Gamepad_FaceButton_Right))) {
+		_nextatkstate = AttackType::punch_strong;
+
+		if (_comandvals == 1) _comandvals++;
+	}
+	//弱キック
+	else if (_controller->IsInputKeyDown(FKey(EKeys::Three))
+		|| _controller->IsInputKeyDown(FKey(EKeys::Gamepad_FaceButton_Top))) {
+		_nextatkstate = AttackType::kick_weak;
+
+		if (_comandvals == 2) _comandvals++;
+	}
+	//強キック
+	else if (_controller->IsInputKeyDown(FKey(EKeys::Four))
+		|| _controller->IsInputKeyDown(FKey(EKeys::Gamepad_FaceButton_Left))) {
+		_nextatkstate = AttackType::kick_strong;
+	}
+}
+
+void APlayerCharacter::Damage()
+{
+	if (_bdamaged) return;	//ダメージリアクション中
+
+	this->_hp -= _attackpower;
+
+	_bdamaged = true;
+
+	if (_hp <= 0)
+	{
+		Destroy();
+	}
 }
 
 void APlayerCharacter::InputMove()
 {
+	if (!IsValid(_controller))return;
+
 	FRotator rot;
 
-	if (_controller->IsInputKeyDown(FKey(EKeys::NumPadFour))) {
+	if (_controller->IsInputKeyDown(FKey(EKeys::A))) {
 		_moveDir = Move_Left;
 
 		rot = FRotator(0.0, 180.0, 0.0);
 		GetMesh()->SetWorldRotation(rot);
 	}
-	else if (_controller->IsInputKeyDown(FKey(EKeys::NumPadSix))) {
+	else if (_controller->IsInputKeyDown(FKey(EKeys::D))) {
 		_moveDir = Move_Right;
 		rot = FRotator(0.0, 0.0, 0.0);
 		GetMesh()->SetWorldRotation(rot);
@@ -207,13 +317,15 @@ void APlayerCharacter::InputMove()
 
 void APlayerCharacter::InputJump()
 {
-	if (_controller->IsInputKeyDown(FKey(EKeys::NumPadSeven))) {
+	if (!IsValid(_controller))return;
+
+	if (_controller->IsInputKeyDown(FKey(EKeys::Z))) {
 		_jumptype = JumpType::Back;
 	}
-	else if (_controller->IsInputKeyDown(FKey(EKeys::NumPadEight))) {
+	else if (_controller->IsInputKeyDown(FKey(EKeys::X))) {
 		_jumptype = JumpType::Normal;
 	}
-	else if (_controller->IsInputKeyDown(FKey(EKeys::NumPadNine))) {
+	else if (_controller->IsInputKeyDown(FKey(EKeys::C))) {
 		_jumptype = JumpType::Front;
 	}
 

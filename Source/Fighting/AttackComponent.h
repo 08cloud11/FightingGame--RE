@@ -41,29 +41,20 @@ public:
 		charaB
 	};
 
+	struct AtkMoveLength
+	{
+		float punch_weak;
+		float punch_medium;
+		float punch_strong;
+		float kick_weak;
+		float kick_medium;
+		float kick_strong;
+	};
+
 public:	
 	UAttackComponent();
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-	// 引　数：なし
-	// 戻り値：void
-	//// 処理内容：攻撃に必要な諸々の値を設定
-	//void Set_Atkvalues(MoveDirection movedir, AttackType atkmode, int atkpower) {
-	//	_movedir = movedir;
-	//	_atktype = atkmode;
-	//	_owneratkpower = atkpower;
-
-	//	_battack = true;
-
-	//	FVector pos = GetOwner()->GetActorLocation();
-	//	FTransform spawnTr;
-	//	spawnTr.SetLocation(pos);
-
-	//	_spawnactor = Cast<ATestBullet>(GetWorld()->SpawnActor<AActor>(_atkactor, spawnTr));
-	//	_spawnactor->Set_movedir(ATestBullet::MoveDirection(_movedir));
-	//	_spawnactor->Set_currentchara(ATestBullet::CurretCharaType(charaB));
-	//}
 
 	bool Get_battack() const { return _battack; }
 
@@ -73,7 +64,10 @@ protected:
 private:
 	void MoveCol(float DeltaTime);
 
-	void WeekPunch(float DeltaTime);
+	// 引　数：なし
+	// 戻り値：void
+	// 処理内容：波動拳コマンド処理
+	void Hadouken();
 
 private:	
 	UPROPERTY(EditAnywhere, Category = "Bullet")
@@ -82,12 +76,17 @@ private:
 	UPROPERTY()
 	AActor* _spawnactor = nullptr;
 
+	AtkMoveLength _currentlength;
+
 	MoveDirection _movedir;
 	CurrentAtkType _atktype;
 
-	float _actiontimer;
+	int _actionflame;
 
 	int _owneratkpower;
 
 	bool _battack;
+
+	//trueならパンチ、falseでキック
+	bool _batkstate;
 };

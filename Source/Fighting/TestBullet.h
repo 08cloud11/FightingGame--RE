@@ -1,12 +1,16 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+//--------------------------------------------------------------------
+// ファイル名 ：TestBullet.h
+// 概要       ：当たり判定テスト用
+// 作成者     ：0231本間
+// 更新内容   ：4/15　作成
+//--------------------------------------------------------------------
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "CharactorBase.h"
 #include "TestBullet.generated.h"
-
-class ACharactorBase;
 
 UCLASS()
 class FIGHTING_API ATestBullet : public AActor
@@ -23,25 +27,17 @@ public:
 		Move_Down
 	};
 
-	enum CurretCharaType
-	{
-		charaA,
-		charaB,
-		None
-	};
-
 public:	
 	ATestBullet();
 
 	virtual void Tick(float DeltaTime) override;
 
 	void Set_movedir(MoveDirection value) { _movedir = value; }
-	void Set_currentchara(CurretCharaType charatype) { _curretchara = charatype; }
+	void Set_currentchara(CharaType charatype) { _curretchara = charatype; }
 
-	CurretCharaType Get_currentchara() const { return _curretchara; }
+	CharaType Get_currentchara() const { return _curretchara; }
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:
@@ -49,5 +45,7 @@ private:
 
 private:
 	MoveDirection _movedir;
-	CurretCharaType _curretchara = None;
+
+	UPROPERTY(EditAnywhere, Category = "Status")
+	CharaType _curretchara = CharaType::None;
 };

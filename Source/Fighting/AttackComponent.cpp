@@ -4,24 +4,18 @@
 #include "AttackComponent.h"
 #include "CharactorBase.h"
 
-// Sets default values for this component's properties
 UAttackComponent::UAttackComponent()
-	: _actiontimer(0.0)
+	: _actionflame(0)
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-
-// Called when the game starts
 void UAttackComponent::BeginPlay()
 {
 	Super::BeginPlay();
 		
 }
 
-// Called every frame
 void UAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -31,38 +25,40 @@ void UAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 void UAttackComponent::MoveCol(float DeltaTime)
 {
-	switch (Cast<ACharactorBase>(GetOwner())->Get_atktype())
+	//テスト用(パンチのステートならパンチの処理)
+	if (Cast<ACharactorBase>(GetOwner())->Get_atktype() == AttackType::punch_weak
+		|| Cast<ACharactorBase>(GetOwner())->Get_atktype() == AttackType::punch_medium
+		|| Cast<ACharactorBase>(GetOwner())->Get_atktype() == AttackType::punch_strong)	{
+		_batkstate = true;
+	}
+	else{
+		_batkstate = false;
+	}
+
+	if (Cast<ACharactorBase>(GetOwner())->Get_atktype() == AttackType::hadouken)
 	{
-	case AttackType::punch_weak:
-		WeekPunch(DeltaTime);
+		Hadouken();
+	}
+
+	switch (_batkstate)
+	{
+	case true:
 
 		break;
-	case AttackType::punch_medium:
-		WeekPunch(DeltaTime);
 
-		break;
-	case AttackType::punch_strong:
-		WeekPunch(DeltaTime);
+	case false:
 
-		break;
-	case AttackType::kick_weak:
-		WeekPunch(DeltaTime);
-
-		break;
-	case AttackType::kick_medium:
-		WeekPunch(DeltaTime);
-
-		break;
-	case AttackType::kick_strong:
-		WeekPunch(DeltaTime);
 
 		break;
 	}
 }
 
-void UAttackComponent::WeekPunch(float DeltaTime)
+void UAttackComponent::Hadouken()
 {
-	if (_spawnactor == nullptr)
+	_actionflame++;
+	
+	if (_actionflame < 35) return;
+	else if (_spawnactor == nullptr)
 	{
 		FVector pos = GetOwner()->GetActorLocation();
 
@@ -70,13 +66,12 @@ void UAttackComponent::WeekPunch(float DeltaTime)
 		spawnTr.SetLocation(pos);
 
 		int value = Cast<ACharactorBase>(GetOwner())->Get_moveDir();
-
 		_movedir = MoveDirection(value);
 
 		_spawnactor = Cast<AActor>(GetWorld()->SpawnActor<AActor>(_atkactor, spawnTr));
 		Cast<ATestBullet>(_spawnactor)->Set_movedir(ATestBullet::MoveDirection(_movedir));
-		Cast<ATestBullet>(_spawnactor)->Set_currentchara(ATestBullet::CurretCharaType(
-			Cast<ACharactorBase>(GetOwner())->Get_charatype()));
+		Cast<ATestBullet>(_spawnactor)->Set_currentchara(
+			Cast<ACharactorBase>(GetOwner())->Get_charatype());
 	}
 
 	FVector bulletpos = _spawnactor->GetActorLocation();
@@ -94,11 +89,9 @@ void UAttackComponent::WeekPunch(float DeltaTime)
 		break;
 	}
 
-	_actiontimer += DeltaTime;
-
-	if (_actiontimer > 0.8f)
+	if (_actionflame > 90)
 	{
-		_actiontimer = 0.0f;
+		_actionflame = 0;
 		Cast<ACharactorBase>(GetOwner())->Set_atktype(AttackType::None);
 		_spawnactor->Destroy();
 		_spawnactor = nullptr;

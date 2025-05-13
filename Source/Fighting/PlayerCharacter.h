@@ -1,5 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+//--------------------------------------------------------------------
+// ファイル名 ：PlayerCharacter.h
+// 概要       ：プレイヤーの基盤のクラス
+// 作成者     ：0231本間
+// 更新内容   ：4/15　作成
+//--------------------------------------------------------------------
 #pragma once
 
 #include "CoreMinimal.h"
@@ -16,6 +20,9 @@ public:
 	  
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UFUNCTION(BlueprintCallable)
+	void SetUpController(APlayerController* val);
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -23,7 +30,7 @@ protected:
 	// 戻り値：void
 	// 処理内容：移動処理
 	virtual void Move()override;
-	virtual void Move(float) override;
+	virtual void PadMove(const FInputActionValue&) override;
 
 	virtual void Jump(float DeltaTime) override;
 
@@ -31,6 +38,8 @@ protected:
 	// 戻り値：void
 	// 処理内容：攻撃処理
 	virtual void AttackAction()override;
+
+	void Damage();
 
 	// 引　数：なし
 	// 戻り値：void
