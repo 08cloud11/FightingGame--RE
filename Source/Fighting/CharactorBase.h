@@ -90,11 +90,13 @@ public:
 		Super::SetupPlayerInputComponent(PlayerInputComponent);
 	};
 
+	//------------ÉQÉbÉ^Å[-----------------
+
+	UFUNCTION(BlueprintCallable)
 	CharaType Get_charatype() const { return _charatype; }
 
 	UFUNCTION(BlueprintCallable)
 	AttackType Get_atktype() const { return _atktype; }
-
 
 	int Get_moveDir() const { return int(_moveDir); }
 
@@ -118,8 +120,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool Get_bdamaged() const { return _bdamaged; }
 
+	UFUNCTION(BlueprintCallable)
+	bool Get_bdead() const { return _bdead; }
+
+	//-------------------------------------
 
 	void Set_atktype(AttackType value) { _atktype = value; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetCharaType(CharaType val) { _charatype = val; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -187,11 +196,8 @@ protected:
 	bool _bdead = false;		//îsñk
 
 private:
-	UPROPERTY(EditAnywhere, Category = "MPC")
-	UMaterialParameterCollection* _mpc;
-
-	UPROPERTY()
-	UMaterialParameterCollectionInstance* _mpcinstance;
+	UPROPERTY(EditAnywhere, Category = "OverlayMat")
+	UMaterialInterface* _overlaymat;
 
 	UPROPERTY()
 	TArray<UMaterialInstanceDynamic*> _mats;

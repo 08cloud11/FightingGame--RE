@@ -16,44 +16,14 @@
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	_charatype = CharaType::charaA;
-	//if (Controller == nullptr) {
-
-	//	TArray<AActor*> charas;
-
-	//	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACharactorBase::StaticClass(), charas);
-
-	//	if(charas.Num() == 1) _controller = Cast<APlayerController>(GetWorld()->GetFirstPlayerController());
-	//	else
-	//	{
-	//		//GetWorld()->GetPlayerControllerIterator()->
-	//	}
-	//}
-	//else {
-	//	_controller = Cast<APlayerController>(Controller);
-	//}
 	
-
-	/*{
-		FTransform spawntr;
-		FVector pos = FVector(0.0, 300.0, 90.0);
-		spawntr.SetLocation(pos);
-
-		FName path = TEXT("/Game/Main/0231honma/BP/BP_Sandbag");
-		TSubclassOf<class AActor> Player2 = TSoftClassPtr<AActor>(FSoftObjectPath(path)).LoadSynchronous();
-
-		APlayer2_Demo* spawnplayer = Cast<APlayer2_Demo>(GetWorld()->SpawnActor<AActor>(Player2, spawntr));
-
-		APlayerController* controller = UGameplayStatics::CreatePlayer(GetWorld());
-		controller->Possess(spawnplayer);
-
-		spawnplayer->SetInput(controller);
-	}*/
+	
 }
 
 void APlayerCharacter::Tick(float DeltaTime)
 {
+	if (_bdead)return;
+
 	Super::Tick(DeltaTime);
 
 	//上下左右の移動のみのため、奥行きの固定
@@ -170,6 +140,8 @@ void APlayerCharacter::Move()
 
 void APlayerCharacter::PadMove(const FInputActionValue& axisvalue)
 {
+	if (_bdead)return;
+
 	FVector pos = GetActorLocation();
 
 	FVector2D value = axisvalue.Get<FVector2D>();
@@ -178,18 +150,21 @@ void APlayerCharacter::PadMove(const FInputActionValue& axisvalue)
 	{
 		_moveDir = Move_Left;
 		SetActorLocation(FVector(pos.X, pos.Y - 5.0, pos.Z));
+		_bmove = true;
 	}
 	else if (value.X > 0.0 && value.X > 0.5)
 	{
 		_moveDir = Move_Right;
 		SetActorLocation(FVector(pos.X, pos.Y + 5.0, pos.Z));
-	}
+		_bmove = true;
+	}	
 
-	_bmove = true;
+	_bmove = false;
 }
 
 void APlayerCharacter::Jump(float DeltaTime)
 {
+	if (_bdead)return;
 	if (!_bjump) return;
 
 	_jumpTimer += DeltaTime;
@@ -252,6 +227,8 @@ void APlayerCharacter::Jump(float DeltaTime)
 
 void APlayerCharacter::AttackAction()
 {
+	if (_bdead)return;
+
 	//弱パンチ
 	if (_controller->IsInputKeyDown(FKey(EKeys::One))
 		|| _controller->IsInputKeyDown(FKey(EKeys::Gamepad_FaceButton_Bottom))) {
@@ -296,6 +273,8 @@ void APlayerCharacter::Damage()
 
 void APlayerCharacter::InputMove()
 {
+	if (_bdead)return;
+
 	if (!IsValid(_controller))return;
 
 	FRotator rot;
@@ -317,6 +296,8 @@ void APlayerCharacter::InputMove()
 
 void APlayerCharacter::InputJump()
 {
+	if (_bdead)return;
+
 	if (!IsValid(_controller))return;
 
 	if (_controller->IsInputKeyDown(FKey(EKeys::Z))) {
