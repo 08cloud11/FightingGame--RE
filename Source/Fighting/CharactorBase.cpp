@@ -20,18 +20,6 @@ ACharactorBase::ACharactorBase()
 	, _atktype(AttackType::None)
 {
 	PrimaryActorTick.bCanEverTick = true;
-
-	//色変化用の処理（途中）
-	/*USkeletalMeshComponent* mesh = this->GetMesh();
-
-	if (IsValid(mesh)) {
-
-		UE_LOG(LogTemp, Log, TEXT("ACharactorBase : ACharactorBase()"));
-		for (auto mat : mesh->GetMaterials())
-		{
-			_mats[i] = mat->CreateDynamicMaterialInstance(i);
-		}
-	}*/
 }
 
 void ACharactorBase::BeginPlay()
@@ -40,32 +28,35 @@ void ACharactorBase::BeginPlay()
 
 	Cast<UPrimitiveComponent>(GetRootComponent())->
 		OnComponentBeginOverlap.AddDynamic(this, &ACharactorBase::OnOverlapBegin);
-
-	_mpcinstance = GetWorld()->GetParameterCollectionInstance(_mpc);
-	
-	UMaterialInterface* player_bodymat = this->GetMesh()->GetMaterialByName(TEXT("Body"));
-
-	/*UMaterialInstanceDynamic* bodymat_dynamic =*/
 }
 
 void ACharactorBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if (Cast<ACharactorBase>(OtherActor)) {
+		UE_LOG(LogTemp, Log, TEXT("overlap : this :%d : other : %d"), int(this->Get_charatype()), 
+			int(Cast<ACharactorBase>(OtherActor)->Get_charatype()));
+	}
+	else if (Cast<ATestBullet>(OtherActor)) {
+		UE_LOG(LogTemp, Log, TEXT("overlap : this :%d : other : %d"), int(this->Get_charatype()),
+			int(Cast<ATestBullet>(OtherActor)->Get_currentchara()));
+	}
+
 	if (_bdamaged) return;	//ダメージリアクション中
 	if (!Cast<ATestBullet>(OtherActor))return; //当たったアクターが指定のものではない
 	if (Cast<ATestBullet>(OtherActor)->Get_currentchara() == CharaType::None)return; //当たったアクターの攻撃の種別が指定されていない
 	if (Cast<ATestBullet>(OtherActor)->Get_currentchara() == _charatype)return; //自分自身
 
 	this->_hp -= _attackpower;
-	OtherActor->Destroy();
+	//OtherActor->Destroy();
 
-	_mpcinstance->SetVectorParameterValue(FName("AddVector"), FColor(255, 255, 255, 255));
-	/*_mpcinstance-> (FName("AddVector"))*/
-	_bdamaged = true;
+	GetMesh()->SetOverlayMaterial(_overlaymat);
 
-	if (_hp <= 0)
-	{
-		Destroy();
+	if (_hp <= 0){
+		_bdead = true;
+	}
+	else {
+		_bdamaged = true;
 	}
 }
 
@@ -79,13 +70,6 @@ void ACharactorBase::Tick(float DeltaTime)
 void ACharactorBase::Damaged()
 {
 	FVector pos = GetActorLocation();
-
-	//色変化用の処理（途中）
-	/*for (int i = 0; i < 3; i++)
-	{
-		_mats[i]->SetVectorParameterValue(TEXT("Value"), FVector(1.0, 0.2, 0.2));
-	}*/
-	//_mats[0]->SetVectorParameterValue(TEXT("Value"), FVector(1.0, 0.2, 0.2));
 
 	//小刻みに震える処理
 	switch (_damagedflame % 2)
@@ -105,6 +89,7 @@ void ACharactorBase::Damaged()
 
 	if (_damagedflame > 12)
 	{
+		GetMesh()->SetOverlayMaterial(nullptr);
 		_bdamaged = false;
 		_damagedflame = 0;
 	}
