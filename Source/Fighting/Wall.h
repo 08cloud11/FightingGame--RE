@@ -2,20 +2,18 @@
 
 #pragma once
 
-#include "CoreMinimal.h""
+#include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "vector3.h
-#include "Camera.generated.h"
+#include "Wall.generated.h"
 
 UCLASS()
-class FIGHTING_API ACamera : public AActor
+class FIGHTING_API AWall : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ACamera();
-	~ACamera();
+	AWall();
 
 protected:
 	// Called when the game starts or when spawned
@@ -25,9 +23,4 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-private:
-	AActor* pPlayer[];
-	AActor* pWall[];
-
-	Vector3 InitialPosition
 };
