@@ -56,7 +56,11 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	//------------ÉQÉbÉ^Å[-----------------
+
 	bool Get_battack() const { return _battack; }
+
+	//-------------------------------------
 
 protected:
 	virtual void BeginPlay() override;	

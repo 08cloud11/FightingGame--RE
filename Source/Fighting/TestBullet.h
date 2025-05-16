@@ -33,9 +33,15 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void Set_movedir(MoveDirection value) { _movedir = value; }
+
+	UFUNCTION(BlueprintCallable)
 	void Set_currentchara(CharaType charatype) { _curretchara = charatype; }
 
+	//------------ÉQÉbÉ^Å[-----------------
+
 	CharaType Get_currentchara() const { return _curretchara; }
+
+	//-------------------------------------
 
 protected:
 	virtual void BeginPlay() override;
@@ -44,6 +50,7 @@ private:
 	void Move();
 
 private:
+
 	MoveDirection _movedir;
 
 	UPROPERTY(EditAnywhere, Category = "Status")

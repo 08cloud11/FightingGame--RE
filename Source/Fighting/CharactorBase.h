@@ -90,11 +90,13 @@ public:
 		Super::SetupPlayerInputComponent(PlayerInputComponent);
 	};
 
+	//------------ゲッター-----------------
+
+	UFUNCTION(BlueprintCallable)
 	CharaType Get_charatype() const { return _charatype; }
 
 	UFUNCTION(BlueprintCallable)
 	AttackType Get_atktype() const { return _atktype; }
-
 
 	int Get_moveDir() const { return int(_moveDir); }
 
@@ -118,8 +120,33 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool Get_bdamaged() const { return _bdamaged; }
 
+	UFUNCTION(BlueprintCallable)
+	bool Get_bdead() const { return _bdead; }
+
+	//-------------------------------------
 
 	void Set_atktype(AttackType value) { _atktype = value; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetCharaType(CharaType val) { _charatype = val; }
+
+	UFUNCTION(BlueprintCallable)
+	void Set_bcontroll(bool val) { _bcontroll = val; }
+
+	// 引　数：なし
+	// 戻り値：void
+	// 処理内容：各ステータスを初期状態にリセット
+	UFUNCTION(BlueprintCallable)
+	void ResetStatus() {
+		_hp = _max_hp;
+		_bmove = false;		
+		_bjump = false;		
+		_battack = false;		
+		_bdamaged = false;		
+		_bdead = false;		
+		_bcontroll = false;	
+		GetMesh()->SetOverlayMaterial(nullptr);
+	}
 
 protected:
 	virtual void BeginPlay() override;
@@ -185,13 +212,11 @@ protected:
 	bool _battack = false;		//パンチできるか
 	bool _bdamaged = false;		//ダメージリアクション中
 	bool _bdead = false;		//敗北
+	bool _bcontroll = false;	//コントロ―ル可能
 
 private:
-	UPROPERTY(EditAnywhere, Category = "MPC")
-	UMaterialParameterCollection* _mpc;
-
-	UPROPERTY()
-	UMaterialParameterCollectionInstance* _mpcinstance;
+	UPROPERTY(EditAnywhere, Category = "OverlayMat")
+	UMaterialInterface* _overlaymat;
 
 	UPROPERTY()
 	TArray<UMaterialInstanceDynamic*> _mats;
